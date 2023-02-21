@@ -75,7 +75,7 @@ def get_all_roc_coordinates(y_real, y_proba):
     return tpr_list, fpr_list
 
 
-def plot_roc_curve(tpr, fpr, scatter=True, ax=None):
+def plot_roc_curve(tpr, fpr, name, auc, scatter=True, ax=None):
     '''
     Plots the ROC Curve by using the list of coordinates (tpr and fpr).
 
@@ -90,12 +90,13 @@ def plot_roc_curve(tpr, fpr, scatter=True, ax=None):
 
     if scatter:
         sns.scatterplot(x=fpr, y=tpr, ax=ax)
-    sns.lineplot(x=fpr, y=tpr, ax=ax)
-    sns.lineplot(x=[0, 1], y=[0, 1], color='green', ax=ax)
+    sns.lineplot(x=fpr, y=tpr, ax=ax, legend= 'brief', label = f'ROC {name} vs Rest (AUC={auc:0.3f})', alpha = 0.8)
+
     plt.xlim(-0.05, 1.05)
     plt.ylim(-0.05, 1.05)
     plt.xlabel("False Positive Rate")
     plt.ylabel("True Positive Rate")
+    #ax.legend()
 
 
 # ## Multiclass classification evaluation with KS test
@@ -132,36 +133,82 @@ plt.figure(figsize=(6.5, 9))
 bins = [i / 20 for i in range(20)] + [1]
 roc_auc_ovr = {}
 
-for i in range(len(classes)):
-    # Gets the class
-    c = classes[i]
+# for i in range(len(classes)):
+#     # Gets the class
+#     c = classes[i]
+#
+#     # Prepares an auxiliar dataframe to help with the plots
+#     df_aux = X_test.copy()
+#     df_aux['class'] = [1 if y == c else 0 for y in y_test]
+#     df_aux['prob'] = y_proba[:, i]
+#     df_aux = df_aux.reset_index(drop=True)
+#
+#     # Plots the probability distribution for the class and the rest
+#     ax = plt.subplot(3, 2, 2*i + 1)
+#     sns.histplot(x="prob", data=df_aux, hue='class', color='b', ax=ax, bins=bins)
+#     ax.set_title(f'Class {c} vs. rest ')
+#     ax.legend([f"Class: {c}", "Rest"],loc='upper center')
+#     ax.set_xlabel(f"P(x = {c})")
+#     #plt.imsave(f'{date}')
+#
+#     # Calculates the ROC Coordinates and plots the ROC Curves
+#     ax_bottom = plt.subplot(3, 2, 2*i + 2)
+#     tpr, fpr = get_all_roc_coordinates(df_aux['class'], df_aux['prob'])
+#     plot_roc_curve(tpr, fpr, scatter=False, ax=ax_bottom)
+#     ax_bottom.set_title(f"ROC Curve {c} vs. rest")
+#
+#     # Calculates the ROC AUC OvR
+#     roc_auc_ovr[c] = roc_auc_score(df_aux['class'], df_aux['prob'])
+
+plt.tight_layout()
+#plt.savefig(f'{date}_histplot-OvR.png')
+plt.show()
+
+#%% plot all OvR in one plot
+from itertools import cycle
+
+fig, ax = plt.subplots(figsize=(6, 6))
+colors = cycle(["aqua", "darkorange", "cornflowerblue"])
+for class_id, color in zip(range(len(classes)), colors):
+    c = classes[class_id]
 
     # Prepares an auxiliar dataframe to help with the plots
     df_aux = X_test.copy()
     df_aux['class'] = [1 if y == c else 0 for y in y_test]
-    df_aux['prob'] = y_proba[:, i]
+    df_aux['prob'] = y_proba[:, class_id]
     df_aux = df_aux.reset_index(drop=True)
-
-    # Plots the probability distribution for the class and the rest
-    ax = plt.subplot(3, 2, 2*i + 1)
-    sns.histplot(x="prob", data=df_aux, hue='class', color='b', ax=ax, bins=bins)
-    ax.set_title(f'Class {c} vs. rest ')
-    ax.legend([f"Class: {c}", "Rest"],loc='upper center')
-    ax.set_xlabel(f"P(x = {c})")
-    #plt.imsave(f'{date}')
-
-    # Calculates the ROC Coordinates and plots the ROC Curves
-    ax_bottom = plt.subplot(3, 2, 2*i + 2)
-    tpr, fpr = get_all_roc_coordinates(df_aux['class'], df_aux['prob'])
-    plot_roc_curve(tpr, fpr, scatter=False, ax=ax_bottom)
-    ax_bottom.set_title(f"ROC Curve {c} vs. rest")
 
     # Calculates the ROC AUC OvR
     roc_auc_ovr[c] = roc_auc_score(df_aux['class'], df_aux['prob'])
 
-plt.tight_layout()
-plt.savefig(f'{date}_histplot-OvR.png')
+    tpr, fpr = get_all_roc_coordinates(df_aux['class'], df_aux['prob'])
+    plot_roc_curve(tpr, fpr, c, roc_auc_ovr[c], scatter=False, ax=ax)
+    #ax.legend(f'ROC {c} vs Rest (AUC={roc_auc_ovr[c]})')
+    #ax_bottom.set_title(f"ROC Curve {c} vs. rest")
+
+
+
+
+    #RocCurveDisplay.from_predictions(
+     #   y_onehot_test[:, class_id],
+      #  y_score[:, class_id],
+       # name=f"ROC curve for {target_names[class_id]}",
+        #color=color,
+        #ax=ax,
+    #)
+
+plt.plot([0, 1], [0, 1], "k--", label="ROC curve for chance level (AUC = 0.5)")
+plt.axis("square")
+plt.xlabel("False Positive Rate")
+plt.ylabel("True Positive Rate")
+plt.title("Receiver Operating Characteristic\n One-vs-Rest")
+plt.legend()
+plt.savefig(f'{date}-OvR-AllinOne.png')
 plt.show()
+
+
+
+
 
 
 #%% Displays the ROC AUC for each class
@@ -191,7 +238,7 @@ classes_combinations
 
 
 # Plots the Probability Distributions and the ROC Curves One vs ONe
-plt.figure(figsize=(6.5, 9),dpi=500)
+plt.figure(figsize=(20,7),dpi=500)
 bins = [i / 20 for i in range(20)] + [1]
 roc_auc_ovo = {}
 
@@ -214,14 +261,14 @@ for i in range(len(classes_combinations)):
     df_aux = df_aux.reset_index(drop=True)
 
     # Plots the probability distribution for the class and the rest
-    ax = plt.subplot(6, 2, 2*i + 1)
+    ax = plt.subplot(2,6, i + 1)
     sns.histplot(x="prob", data=df_aux, hue='class', color='b', ax=ax, bins=bins)
     ax.set_title(title)
-    ax.legend([f"Class 1: {c1}", f"Class 0: {c2}"])
+    ax.legend([f"Class {c1}", f"Class {c2}"])
     ax.set_xlabel(f"P(x = {c1})")
 
     # Calculates the ROC Coordinates and plots the ROC Curves
-    ax_bottom = plt.subplot(6, 2, 2*i + 2)
+    ax_bottom = plt.subplot(2,6, i + 7)
     tpr, fpr = get_all_roc_coordinates(df_aux['class'], df_aux['prob'])
     plot_roc_curve(tpr, fpr, scatter=False, ax=ax_bottom)
     ax_bottom.set_title(f"ROC Curve {c1}v{c2}")
