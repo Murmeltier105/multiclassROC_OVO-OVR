@@ -103,7 +103,7 @@ def plot_roc_curve(tpr, fpr, name, auc, scatter=True, ax=None):
 
 # ### Creating a synthetic dataset
 
-df = pd.read_pickle('/home/dr1/PycharmProjects/GraMa/2022-10-09_Vorhersagewerte_C2N.pkl')
+df = pd.read_pickle('/home/dr1/PycharmProjects/GraMa/trainedModelsNormalized/Ce2No/2022-10-09_Vorhersagewerte_C2N.pkl')
 
 
 # %% Plot them to show how much they intersect
@@ -203,7 +203,7 @@ plt.xlabel("False Positive Rate")
 plt.ylabel("True Positive Rate")
 plt.title("Receiver Operating Characteristic\n One-vs-Rest")
 plt.legend()
-plt.savefig(f'{date}-OvR-AllinOne.png')
+plt.savefig(f'{date}-OvR-0vsREst.png')
 plt.show()
 
 

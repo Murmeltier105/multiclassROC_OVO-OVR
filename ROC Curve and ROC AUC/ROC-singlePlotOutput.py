@@ -1,35 +1,16 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # ROC Curve - Multiclass
-# Vinicius Trevisan - 2022
-
-# ## Imports
-
-# In[1]:
-
-
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
 import time
-
-date = time.strftime("%Y-%m-%d")
-
-# In[2]:
-
-
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import roc_auc_score
 from sklearn.ensemble import RandomForestClassifier
-
+date = time.strftime("%Y-%m-%d")
 # ## Functions
 # Slightly modified from the binary classifier case
-
-# In[26]:
 
 
 def calculate_tpr_fpr(y_real, y_pred):
@@ -59,9 +40,6 @@ def calculate_tpr_fpr(y_real, y_pred):
     return tpr, fpr
 
 
-# In[27]:
-
-
 def get_all_roc_coordinates(y_real, y_proba):
     '''
     Calculates all the ROC Curve coordinates (tpr and fpr) by considering each point as a treshold for the predicion of the class.
@@ -83,10 +61,6 @@ def get_all_roc_coordinates(y_real, y_proba):
         tpr_list.append(tpr)
         fpr_list.append(fpr)
     return tpr_list, fpr_list
-
-
-# In[28]:
-
 
 def plot_roc_curve(tpr, fpr, scatter=True, ax=None):
     '''
@@ -112,49 +86,8 @@ def plot_roc_curve(tpr, fpr, scatter=True, ax=None):
 
 
 # ## Multiclass classification evaluation with KS test
+df = pd.read_pickle('/home/dr1/PycharmProjects/GraMa/trainedModelsNormalized/Ce2No/2022-10-09_Vorhersagewerte_C2N.pkl')
 
-# ### Creating a synthetic dataset
-
-# In[6]:
-
-
-# scale = 3.5
-# size = 500
-
-
-# In[7]:
-
-
-# class1_x = np.random.normal(loc = 10, scale = scale, size = size)
-# class1_y = np.random.normal(loc = 1, scale = scale, size = size)
-
-
-# In[8]:
-
-
-# class2_x = np.random.normal(loc = 1, scale = scale, size = size)
-# class2_y = np.random.normal(loc = 5, scale = scale, size = size)
-
-
-# In[9]:
-
-
-# class3_x = np.random.normal(loc = 10, scale = scale, size = size)
-# class3_y = np.random.normal(loc = 10, scale = scale, size = size)
-
-
-# In[10]:
-
-
-# df_class1 = pd.DataFrame({'x' : class1_x, 'y' : class1_y, 'class': 'apple'})
-# df_class2 = pd.DataFrame({'x' : class2_x, 'y' : class2_y, 'class': 'banana'})
-# df_class3 = pd.DataFrame({'x' : class3_x, 'y' : class3_y, 'class': 'orange'})
-# df = df_class1.append(df_class2, ignore_index = True)
-# df = df.append(df_class3, ignore_index = True)
-
-df = pd.read_pickle('/home/dr1/PycharmProjects/GraMa/2022-10-09_Vorhersagewerte_C2N.pkl')
-
-# In[11]:
 
 
 # %% Plot them to show how much they intersect
@@ -163,44 +96,6 @@ df = pd.read_pickle('/home/dr1/PycharmProjects/GraMa/2022-10-09_Vorhersagewerte_
 # plt.figure(figsize=(5, 5))
 # sns.scatterplot(x = 'Label', y = 'prob', hue = 'Prediction', data = plotDF)
 # plt.show()
-
-# In[12]:
-
-#
-# X = df[['x', 'y']]
-# y = df['class']
-
-
-# In[13]:
-
-
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
-
-
-# ### Fits the model and make the predictions
-
-# In[14]:
-
-
-# model_multiclass = RandomForestClassifier(n_estimators = 50, criterion = 'gini')
-
-
-# In[15]:
-
-
-# model_multiclass.fit(X_train, y_train)
-
-
-# In[16]:
-
-
-# y_pred = model_multiclass.predict(X_test)
-
-
-# In[17]:
-
-
-# y_proba = model_multiclass.predict_proba(X_test)
 
 
 # ## ROC Curve - One vs Rest (OvR)
