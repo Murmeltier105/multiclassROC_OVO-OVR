@@ -14,8 +14,12 @@ from sklearn.ensemble import RandomForestClassifier
 import matplotlib as mpl
 from itertools import cycle
 
-date = time.strftime("%Y-%m-%d")
-
+# setup lists of classifications you want to compare
+root = '/home/dr1/PycharmProjects/GraMa/'
+classifications = ['trainedModelsNormalized/Ce2No', 'trainedModelsNormalized/Ce2NoGroupAug+', 'trainedModelsNormalized/Bo2No', 'trainedModelsNormalized/Bo2NoGroupAug+']
+#the folder root + classification must contain a file '*Vorhersagewerte3*.pkl' with the predictive values at columns [3:6]
+#other neccesary columns: 'Label', 'imagePath'
+save = False    #set to True if you like the plot
 # ## Functions
 # Slightly modified from the binary classifier case
 
@@ -76,6 +80,8 @@ def plot_roc_curve(tpr, fpr, name, auc, scatter=True, ax=None):
     Args:
         tpr: The list of TPRs representing each coordinate.
         fpr: The list of FPRs representing each coordinate.
+        name: (str) name of the classification to be displayed in the label
+        auc:  (float) AUC value to be displayed alongside the classification inside the label
         scatter: When True, the points used on the calculation will be plotted with the line (default = True).
     '''
     if ax == None:
@@ -98,17 +104,18 @@ def plot_roc_curve(tpr, fpr, name, auc, scatter=True, ax=None):
 # ### Creating a synthetic dataset
 
 
-dateStamp = time.strftime("%Y-%m-%d")
-classifications = ['trainedModelsNormalized/Ce2No', 'trainedModelsNormalized/Ce2NoGroupAug+', 'trainedModelsNormalized/Bo2No', 'trainedModelsNormalized/Bo2NoGroupAug+']
+dateStamp = time.strftime("%Y-%m-%d")   #to distinguish png plots
 fig, ax = plt.subplots(figsize=(10, 6.5), dpi=400)
 mpl.rcParams['font.family'] = 'Avenir'
 plt.rcParams['font.size'] = 18
 plt.rcParams['axes.linewidth'] = 2
 colors = cycle(["aqua", "darkorange", "cornflowerblue", 'lime'])
 ax.spines[['right', 'top']].set_visible(False)
+date = time.strftime("%Y-%m-%d")
 
 for classification,color in zip(classifications, colors):
-    dfPath = glob.glob(f'/home/dr1/PycharmProjects/GraMa/{classification}/*Vorhersagewerte3*.pkl')
+    #load dataframe
+    dfPath = glob.glob(f'{root}{classification}/*Vorhersagewerte3*.pkl')
     df = pd.read_pickle(dfPath[0])
 
 #fig = plt.figure(figsize = (6.4,4.8), dpi = 400)
@@ -118,8 +125,9 @@ for classification,color in zip(classifications, colors):
 # ## ROC Curve - One vs Rest (OvR)
 # Compares each class with the rest of the classes
 
+    #set up variables
     y_proba = np.asarray(df.iloc[:, 3:6])
-    y_pred = np.asarray(df.iloc[:, 2])
+    #y_pred = np.asarray(df.iloc[:, 2])
     X_test = df[['imagePath']]
     y_test = df['Label'].squeeze()
 
@@ -148,9 +156,13 @@ for classification,color in zip(classifications, colors):
 
     # Calculates the ROC AUC OvR
     roc_auc_ovr[c] = roc_auc_score(df_aux['class'], df_aux['prob'])
-
     tpr, fpr = get_all_roc_coordinates(df_aux['class'], df_aux['prob'])
-    plot_roc_curve(tpr, fpr, os.path.basename(classification).replace('Ce','ZT').replace('Bo','PT').replace('Aug+',''), roc_auc_ovr[c], scatter=False, ax=ax)
+
+    #PLOTTING
+    plot_roc_curve(tpr, fpr,
+                   os.path.basename(classification).replace('Ce','ZT').replace('Bo','PT').replace('Aug+',''),   #name in label
+                   roc_auc_ovr[c],  #AUC value for legend entry
+                   scatter=False, ax=ax)
     #ax.legend(f'ROC {c} vs Rest (AUC={roc_auc_ovr[c]})')
     #ax_bottom.set_title(f"ROC Curve {c} vs. rest")
 
@@ -165,7 +177,8 @@ for classification,color in zip(classifications, colors):
             #ax=ax,
         #)
 
-plt.plot([0, 1], [0, 1], "k--", label="Zufall (AUC = 0.5)")
+#Layout of the plot
+plt.plot([0, 1], [0, 1], "k--", label="Zufall (AUC = 0.5)") #ads diagonal line
 plt.axis("square")
 plt.xlabel("Falsch positiv Rate")
 plt.ylabel("Richtig positiv Rate")
@@ -174,7 +187,8 @@ plt.title("Receiver Operating Characteristics\n N- vs. N+")
 plt.legend(bbox_to_anchor=(0.5, 0.5))
 
 plt.tight_layout()
-#plt.savefig(f'{date}-OvR-N0vsN+.png')
+if save_
+    plt.savefig(f'{date}-OvR-N0vsN+.png')
 plt.show()
 
 
